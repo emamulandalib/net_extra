@@ -25,11 +25,11 @@ impl IpMask for IpAddr {
     }
 }
 
-pub(crate) fn is_zeros(ip: &[u8]) -> bool {
+fn is_zeros(ip: &[u8]) -> bool {
     ip.iter().all(|&x| x == 0)
 }
 
-pub(crate) fn to_4(ip: &IpAddr) -> Option<[u8; 4]> {
+fn to_4(ip: &IpAddr) -> Option<[u8; 4]> {
     if let IpAddr::V4(ipv4) = ip {
         return Some(ipv4.octets());
     }
@@ -37,7 +37,7 @@ pub(crate) fn to_4(ip: &IpAddr) -> Option<[u8; 4]> {
     if let IpAddr::V6(ipv46) = ip {
         let mut octets = ipv46.octets();
 
-        if is_zeros(&octets) && &octets[10] == &0xff && &octets[11] == &0xff {
+        if is_zeros(&octets[0..10]) && &octets[10] == &0xff && &octets[11] == &0xff {
             let v: [u8; 4] = [0, 0, 0, 0];
             octets[12..16].clone_from_slice(&v);
             return Some(v);
@@ -45,4 +45,24 @@ pub(crate) fn to_4(ip: &IpAddr) -> Option<[u8; 4]> {
     }
 
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_is_zeros() {
+        assert_eq!(is_zeros(&[0, 0, 12, 0]), false);
+        assert_eq!(is_zeros(&[0, 0, 0, 0]), true)
+    }
+
+    #[test]
+    fn test_to_4() {
+        let ipaddr = IpAddr::from_str("").unwrap();
+        let to = to_4(&ipaddr);
+        println!("{:?}", to);
+        assert_eq!(true, true)
+    }
 }
